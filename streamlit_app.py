@@ -2,21 +2,18 @@ import pandas as pd
 import itertools
 import streamlit as st
 
-# 0. Github raw CSV url(꼭 raw로 시작하고, 'blob' 대신 'raw'로 입력)
 github_url = "https://raw.githubusercontent.com/MJN035/minjun/main/course.csv"
 
-# 1. 데이터 파싱 및 전처리 - 인코딩 오류 예외 처리
+# 첫 2줄 skip하고 컬럼명 제대로 잡기
 try:
-    df = pd.read_csv(github_url, header=1, encoding='utf-8')
+    df = pd.read_csv(github_url, header=2, encoding='utf-8')
 except UnicodeDecodeError:
-    df = pd.read_csv(github_url, header=1, encoding='cp949')
+    df = pd.read_csv(github_url, header=2, encoding='cp949')
 
-# 필요한 컬럼만 추출 
 cols = ['교과목명', '학점', '학년', '수업교시', '주담당교수']
 df = df[cols]
 df['학점'] = pd.to_numeric(df['학점'], errors='coerce').fillna(0).astype(int)
 
-# 수업시간(요일, 시간) 파싱 함수
 def parse_times(times_str):
     if pd.isna(times_str):
         return []
@@ -31,7 +28,6 @@ def parse_times(times_str):
 
 df['parsed_times'] = df['수업교시'].apply(parse_times)
 
-# 2. Streamlit UI
 st.title('시간표 생성기')
 max_credit = st.slider('수강최대학점', min_value=1, max_value=21, value=9)
 holidays = st.multiselect('희망 공강요일 선택', options=['월','화','수','목','금'])
@@ -39,7 +35,6 @@ wants_consecutive = st.checkbox('연강 희망')
 professor_pref = st.text_input('희망 교수님 입력')
 session_pref = st.radio('수업 시간대 선택', options=['전체', '아침', '오후'])
 
-# 3. 조건별 과목 필터링
 filtered_df = df[df['학점'] <= max_credit]
 
 if holidays:
@@ -64,7 +59,6 @@ if session_pref != '전체':
         return True
     filtered_df = filtered_df[filtered_df['parsed_times'].apply(lambda x: is_session_ok(x, session_pref))]
 
-# 4. 시간표 후보 조합(중복 없는 조합 탐색)
 def time_conflict(times1, times2):
     for t1 in times1:
         for t2 in times2:
@@ -79,7 +73,7 @@ def time_conflict(times1, times2):
 
 courses = filtered_df.to_dict('records')
 combos = []
-for r in range(1, 6):  # 조합 최댓값은 필요에 따라 조정
+for r in range(1, 6):
     for combo in itertools.combinations(courses, r):
         conflict = False
         for i in range(len(combo)):
@@ -92,7 +86,6 @@ for r in range(1, 6):  # 조합 최댓값은 필요에 따라 조정
         if not conflict:
             combos.append(combo)
 
-# 5. AI 기반 시간표 제안(여기선 총 학점 높은 조합 추천)
 def score_schedule(schedule):
     return sum(course['학점'] for course in schedule)
 
