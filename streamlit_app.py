@@ -1,7 +1,7 @@
 import pandas as pd
 import streamlit as st
 
-github_url = "https://raw.githubusercontent.com/MJN035/minjun/main/강좌검색.csv"
+github_url = "https://raw.githubusercontent.com/MJN035/minjun/main/course.csv"
 
 try:
     try:
