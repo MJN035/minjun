@@ -2,6 +2,11 @@ import pandas as pd
 import itertools
 import streamlit as st
 
+# GitHub raw CSV 파일 URL (예시 URL을 반드시 본인의 repository 주소로 수정)
+github_url = 'https://raw.githubusercontent.com/MJN035/minjun/blob/main/%EA%B0%95%EC%A2%8C%EA%B2%80%EC%83%89.csv'
+
+df = pd.read_csv(github_url, header=1)
+
 # 1. 데이터 파싱 및 전처리
 file_path = 'gangjwageomsaeg.csv'
 df = pd.read_csv(file_path, header=1)
